@@ -26,6 +26,10 @@ public class AuthManager {
     private final File configFile;
     private List<String> allowedOfflinePlayers;
     private String denyMessage;
+    private final Map<UUID, Integer> loginAttempts = new HashMap<>();
+    private final Map<UUID, Long> lastLoginAttempt = new HashMap<>();
+    private static final int MAX_LOGIN_ATTEMPTS = 3;
+    private static final long LOGIN_TIMEOUT = 300000; // 5分钟
 
     @Inject
     public AuthManager(AuthPlugin plugin, ProxyServer server, Logger logger) {
@@ -172,6 +176,11 @@ public class AuthManager {
             player.sendMessage(Component.text("§c你已经注册过了！"));
             return false;
         }
+
+        if (!isPasswordStrong(password)) {
+            player.sendMessage(Component.text("§c密码必须至少包含6个字符，包括大小写字母和数字！"));
+            return false;
+        }
         
         playerPasswords.put(player.getUniqueId(), password);
         authenticatedPlayers.add(player.getUniqueId());
@@ -184,7 +193,7 @@ public class AuthManager {
         if (survivalServer.isPresent()) {
             // 创建连接请求并送
             player.createConnectionRequest(survivalServer.get()).fireAndForget();
-            player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
+            player.sendMessage(Component.text("§a正在将���传送到生存服务器..."));
         } else {
             player.sendMessage(Component.text("§c错误：找不到生存服务器，请联系管理员！"));
         }
@@ -193,11 +202,31 @@ public class AuthManager {
     }
 
     public boolean authenticate(Player player, String password) {
+        UUID playerId = player.getUniqueId();
+        
+        // 检查是否在超时时间内
+        Long lastAttempt = lastLoginAttempt.get(playerId);
+        if (lastAttempt != null && System.currentTimeMillis() - lastAttempt < LOGIN_TIMEOUT) {
+            int attempts = loginAttempts.getOrDefault(playerId, 0);
+            if (attempts >= MAX_LOGIN_ATTEMPTS) {
+                player.sendMessage(Component.text("§c登录尝试次数过多，请等待5分钟后再试"));
+                return false;
+            }
+        } else {
+            // 重置尝试次数
+            loginAttempts.remove(playerId);
+        }
+
         if (!isRegistered(player)) {
             player.sendMessage(Component.text("§c你还没有注册！请使用 /register <密码> 注册"));
             return false;
         }
 
+        // 更新最后尝试时间
+        lastLoginAttempt.put(playerId, System.currentTimeMillis());
+
+        if (password.equals(playerPasswords.get(playerId))) {
+            authenticatedPlayers.add(playerId);
         if (password.equals(playerPasswords.get(player.getUniqueId()))) {
             authenticatedPlayers.add(player.getUniqueId());
             player.sendMessage(Component.text("§a登录成功！"));
@@ -209,7 +238,7 @@ public class AuthManager {
                 player.createConnectionRequest(survivalServer.get()).fireAndForget();
                 player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
             } else {
-                player.sendMessage(Component.text("§c错误：找不到生存��务器，请联系管理员！"));
+                player.sendMessage(Component.text("§c错误：找不到生存服务器，请联系管理员！"));
             }
             
             return true;
@@ -260,20 +289,114 @@ public class AuthManager {
         return false;
     }
 
+    private boolean isPremiumPlayer(Player player) {
+        try {
+            // 构建 Mojang API URL
+            URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + player.getUsername());
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                // 如果找到了玩家，说明这个用户名是正版账户
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String response = reader.readLine();
+                
+                // 如果找到了响应，说明这是一个正版用户名
+                if (response != null && !response.isEmpty()) {
+                    // 这里我们可以选择是否要验证 UUID
+                    // 由于我们是在 offline mode 下运行，UUID 会不同，所以这里只检查用户名
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("检查正版账户时发生错误", e);
+        }
+        return false;
+    }
+
+    private boolean verifyPremiumSession(Player player, String username) {
+        try {
+            // 首先检查用户名是否是正版账户
+            URL checkUrl = new URL("https://api.mojang.com/users/profiles/minecraft/" + username);
+            HttpURLConnection checkConn = (HttpURLConnection) checkUrl.openConnection();
+            checkConn.setRequestMethod("GET");
+            checkConn.setConnectTimeout(5000);
+            checkConn.setReadTimeout(5000);
+
+            if (checkConn.getResponseCode() != 200) {
+                return false;
+            }
+
+            // 然后验证会话
+            URL sessionUrl = new URL("https://sessionserver.mojang.com/session/minecraft/hasJoined?username=" + username);
+            HttpURLConnection sessionConn = (HttpURLConnection) sessionUrl.openConnection();
+            sessionConn.setRequestMethod("GET");
+            sessionConn.setConnectTimeout(5000);
+            sessionConn.setReadTimeout(5000);
+
+            if (sessionConn.getResponseCode() == 200) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(sessionConn.getInputStream()));
+                String response = reader.readLine();
+                
+                // 检查响应中是否包含玩家信息
+                if (response != null && !response.isEmpty()) {
+                    // 可以进一步解析响应获取更多信息（如皮肤等）
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("验证正版会话时发生错误", e);
+        }
+        return false;
+    }
+
     public void handlePlayerJoin(Player player) {
         String username = player.getUsername();
-        if (checkPremiumAccount(username)) {
-            // 是正版玩家
-            authenticatePlayer(player.getUniqueId());
-            player.sendMessage(Component.text("§a欢迎正版玩家 " + username));
-        } else {
-            // 非正版玩家需要登录
-            player.sendMessage(Component.text("§e请使用 /login <密码> 登录"));
-            player.sendMessage(Component.text("§e如果没有账号，请使用 /register <密码> 注册"));
-        }
+        
+        // 异步验证会话
+        server.getScheduler().buildTask(plugin, () -> {
+            if (isPremiumPlayer(username)) {
+                // 如果是正版用户名，要求玩家证明身份
+                player.sendMessage(Component.text("§e检测到此用户名为正版账号"));
+                player.sendMessage(Component.text("§e如果这是你的账号，请使用正版客户端登录"));
+                player.sendMessage(Component.text("§e否则请更换用户名后使用离线登录"));
+                
+                // 要求玩家登录
+                if (!isRegistered(player)) {
+                    player.sendMessage(Component.text("§e请使用 /register <密码> 注册"));
+                } else {
+                    player.sendMessage(Component.text("§e请使用 /login <密码> 登录"));
+                }
+            } else {
+                // 非正版用户名，走普通注册/登录流程
+                if (!isRegistered(player)) {
+                    player.sendMessage(Component.text("§e请使用 /register <密码> 注册"));
+                } else {
+                    player.sendMessage(Component.text("§e请使用 /login <密码> 登录"));
+                }
+            }
+        }).schedule();
     }
 
     public void authenticatePlayer(UUID uuid) {
         authenticatedPlayers.add(uuid);
+    }
+
+    private boolean isPremiumPlayer(String username) {
+        try {
+            URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + username);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+
+            return connection.getResponseCode() == 200;
+        } catch (Exception e) {
+            logger.error("检查正版账户时发生错误", e);
+            return false;
+        }
     }
 } 

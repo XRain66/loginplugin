@@ -5,11 +5,15 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.command.CommandExecuteEvent;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
+import com.velocitypowered.api.event.connection.PreLoginEvent;
 import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.event.player.ServerPreConnectEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import net.kyori.adventure.text.Component;
+
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class AuthListener {
     private final AuthPlugin plugin;
@@ -77,15 +81,31 @@ public class AuthListener {
     }
 
     @Subscribe(order = PostOrder.FIRST)
-    public void onPlayerLogin(LoginEvent event) {
-        // 检查是否是正版玩家
-        if (event.getPlayer().isOnlineMode()) {
-            // 正版玩家自动通过验证
-            plugin.getAuthManager().authenticatePlayer(event.getPlayer().getUniqueId());
-            return;
-        }
+    public void onPreLogin(PreLoginEvent event) {
+        // 不要让 Velocity 直接拒绝非正版玩家
+        event.setResult(PreLoginEvent.PreLoginComponentResult.forceOfflineMode());
+    }
+
+    @Subscribe(order = PostOrder.FIRST)
+    public void onLogin(LoginEvent event) {
+        Player player = event.getPlayer();
         
-        // 非正版玩家需要进行登录验证
-        // ... 原有的登录验证逻辑 ...
+        if (player.isOnlineMode()) {
+            // 正版玩家自动通过验证
+            plugin.getAuthManager().authenticatePlayer(player.getUniqueId());
+            player.sendMessage(Component.text("§a欢迎正版玩家 " + player.getUsername()));
+        } else {
+            // 非正版玩家强制进入登录服务器
+            player.sendMessage(Component.text("§e请使用 /login <密码> 登录"));
+            player.sendMessage(Component.text("§e如果没有账号，请使用 /register <密码> 注册"));
+            
+            // 确保玩家会被传送到登录服务器
+            plugin.getServer().getScheduler().buildTask(plugin, () -> {
+                Optional<RegisteredServer> loginServer = plugin.getServer().getServer("login");
+                if (loginServer.isPresent()) {
+                    player.createConnectionRequest(loginServer.get()).fireAndForget();
+                }
+            }).delay(500, TimeUnit.MILLISECONDS).schedule();
+        }
     }
 } 
