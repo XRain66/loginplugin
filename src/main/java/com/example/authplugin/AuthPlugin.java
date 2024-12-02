@@ -18,6 +18,7 @@ import java.nio.file.Path;
     authors = {"XRain666"}
 )
 public class AuthPlugin {
+    private static AuthPlugin instance;
     private final ProxyServer server;
     private final Logger logger;
     private final Path dataDirectory;
@@ -25,6 +26,7 @@ public class AuthPlugin {
 
     @Inject
     public AuthPlugin(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
+        instance = this;
         this.server = server;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
@@ -41,6 +43,10 @@ public class AuthPlugin {
         server.getCommandManager().register("register", new RegisterCommand(authManager));
         
         logger.info("Auth Plugin 已加载！");
+    }
+
+    public static AuthPlugin getInstance() {
+        return instance;
     }
 
     public AuthManager getAuthManager() {
