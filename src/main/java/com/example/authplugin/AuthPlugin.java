@@ -19,7 +19,7 @@ import java.util.Optional;
     authors = {"XRain666"},
     description = "A simple auth plugin for Velocity"
 )
-public class AuthPlugin {
+public final class AuthPlugin {
     private final ProxyServer server;
     private final Logger logger;
     private final Path dataDirectory;
@@ -27,7 +27,7 @@ public class AuthPlugin {
     private RegisteredServer loginServer;
 
     @Inject
-    public AuthPlugin(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
+    public AuthPlugin(final ProxyServer server, final Logger logger, @DataDirectory final Path dataDirectory) {
         this.server = server;
         this.logger = logger;
         this.dataDirectory = dataDirectory;

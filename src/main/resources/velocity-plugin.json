@@ -4,6 +4,6 @@
   "version": "1.0-SNAPSHOT",
   "description": "A simple auth plugin for Velocity",
   "authors": ["XRain666"],
-  "dependencies": [],
-  "main": "com.example.authplugin.AuthPlugin"
+  "main": "com.example.authplugin.AuthPlugin",
+  "dependencies": []
 } 
