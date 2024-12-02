@@ -33,6 +33,16 @@ dependencies {
     implementation 'org.spongepowered:configurate-hocon:4.1.2'
 }
 
+// 设置文件重复处理策略
+tasks.withType(Copy).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+// 设置 jar 任务的重复处理策略
+tasks.named('jar') {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
 shadowJar {
     archiveBaseName.set(project.name)
     archiveClassifier.set('')
@@ -40,6 +50,9 @@ shadowJar {
     
     // 重定位依赖，避免冲突
     relocate 'org.spongepowered.configurate', 'com.example.authplugin.libs.configurate'
+    
+    // 设置重复处理策略
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 tasks.build.dependsOn tasks.shadowJar
