@@ -16,6 +16,10 @@ repositories {
         name = 'velocity'
         url = 'https://repo.velocitypowered.com/snapshots/'
     }
+    maven {
+        name = 'sponge'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
+    }
 }
 
 dependencies {
@@ -29,7 +33,12 @@ dependencies {
     implementation 'net.kyori:adventure-api:4.14.0'
     implementation 'net.kyori:adventure-text-minimessage:4.14.0'
     implementation 'com.google.guava:guava:31.1-jre'
+    
+    // Configurate
+    implementation 'org.spongepowered:configurate-core:4.1.2'
     implementation 'org.spongepowered:configurate-yaml:4.1.2'
+    implementation 'org.spongepowered:configurate-hocon:4.1.2'
+    
     implementation 'javax.inject:javax.inject:1'
 }
 
@@ -69,7 +78,7 @@ shadowJar {
     relocate 'com.google.guava', 'com.example.authplugin.lib.guava'
     relocate 'org.slf4j', 'com.example.authplugin.lib.slf4j'
     relocate 'net.kyori', 'com.example.authplugin.lib.kyori'
-    relocate 'ninja.leaping.configurate', 'com.example.authplugin.lib.configurate'
+    relocate 'org.spongepowered', 'com.example.authplugin.lib.spongepowered'
     relocate 'javax.inject', 'com.example.authplugin.lib.javax.inject'
     
     minimize()
