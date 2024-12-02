@@ -31,14 +31,16 @@ public class AuthListener {
         
         if (!plugin.getAuthManager().isAuthenticated(player)) {
             // 如果玩家未登录，强制连接到登录服务器
-            if (targetServer != plugin.getLoginServer()) {
-                event.setResult(ServerPreConnectEvent.ServerResult.allowed(plugin.getLoginServer()));
+            Optional<RegisteredServer> loginServer = plugin.getServer().getServer("login");
+            if (loginServer.isPresent() && targetServer != loginServer.get()) {
+                event.setResult(ServerPreConnectEvent.ServerResult.allowed(loginServer.get()));
                 player.sendMessage(Component.text("§c请先登录后才能进入其他服务器！"));
                 player.sendMessage(Component.text("§e使用 /login <密码> 登录"));
             }
         } else {
             // 如果玩家已登录，但仍在登录服务器，则允许切换到其他服务器
-            if (targetServer == plugin.getLoginServer()) {
+            Optional<RegisteredServer> loginServer = plugin.getServer().getServer("login");
+            if (loginServer.isPresent() && targetServer == loginServer.get()) {
                 player.sendMessage(Component.text("§a你已经登录，可以切换到其他服务器了！"));
             }
         }
