@@ -65,23 +65,42 @@ public class AuthManager {
     }
 
     public boolean canPlayerJoin(Player player) {
-        // 如果是正版登录，直接允许
-        if (player.isOnlineMode()) {
+        // 获取 Velocity 的 online-mode 设置
+        boolean velocityOnlineMode = plugin.getServer().getConfiguration().isOnlineMode();
+        
+        // 如果 Velocity 设置为 online-mode=true
+        if (velocityOnlineMode) {
+            // 只允许正版玩家
+            if (!player.isOnlineMode()) {
+                logger.info("玩家 " + player.getUsername() + " 尝试使用离线账户连接，但服务器要求正版验证");
+                return false;
+            }
             logger.info("正版玩家 " + player.getUsername() + " 正在连接...");
             return true;
-        }
-        
-        // 检查离线玩家是否在允许列表中
-        boolean allowed = allowedOfflinePlayers.contains(player.getUsername());
-        if (!allowed) {
-            logger.info("离线玩家 " + player.getUsername() + " 尝试连接但不在白名单中");
         } else {
-            logger.info("白名单离线玩家 " + player.getUsername() + " 正在连接...");
+            // 如果 Velocity 设置为 online-mode=false
+            // 正版玩家直接允许
+            if (player.isOnlineMode()) {
+                logger.info("正版玩家 " + player.getUsername() + " 正在连接...");
+                return true;
+            }
+            
+            // 检查离线玩家是否在白名单中
+            boolean allowed = allowedOfflinePlayers.contains(player.getUsername());
+            if (!allowed) {
+                logger.info("离线玩家 " + player.getUsername() + " 尝试连接但不在白名单中");
+            } else {
+                logger.info("白名单离线玩家 " + player.getUsername() + " 正在连接...");
+            }
+            return allowed;
         }
-        return allowed;
     }
 
     public String getDenyMessage() {
+        boolean velocityOnlineMode = plugin.getServer().getConfiguration().isOnlineMode();
+        if (velocityOnlineMode) {
+            return "§c服务器已开启正版验证，请使用正版账户进入！";
+        }
         return denyMessage;
     }
 
@@ -149,7 +168,7 @@ public class AuthManager {
         // 获取生存服务器
         Optional<RegisteredServer> survivalServer = plugin.getServer().getServer("survival");
         if (survivalServer.isPresent()) {
-            // 创建连接请求并���送
+            // 创建连接请求并送
             player.createConnectionRequest(survivalServer.get()).fireAndForget();
             player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
         } else {
@@ -176,7 +195,7 @@ public class AuthManager {
                 player.createConnectionRequest(survivalServer.get()).fireAndForget();
                 player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
             } else {
-                player.sendMessage(Component.text("§c错误：找不���生存服务器，请联系管理员！"));
+                player.sendMessage(Component.text("§c错误：找不到生存服务器，请联系管理员！"));
             }
             
             return true;
