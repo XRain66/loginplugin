@@ -30,15 +30,9 @@ public class AuthPlugin {
         this.server = server;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
-    }
-
-    @Subscribe
-    public void onProxyInitialize(ProxyInitializeEvent event) {
-        logger.info("Auth Plugin 正在初始化...");
         
         this.authManager = new AuthManager(this, server, logger);
         server.getEventManager().register(this, new AuthListener(this));
-        
         server.getCommandManager().register("login", new LoginCommand(authManager));
         server.getCommandManager().register("register", new RegisterCommand(authManager));
         
