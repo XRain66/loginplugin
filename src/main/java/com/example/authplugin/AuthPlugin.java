@@ -29,12 +29,13 @@ public final class AuthPlugin {
     public AuthPlugin(ProxyServer server, Logger logger) {
         this.server = server;
         this.logger = logger;
-        logger.info("Auth Plugin 正在初始化...");
     }
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
         try {
+            logger.info("Auth Plugin 正在初始化...");
+            
             this.authManager = new AuthManager(this);
             
             Optional<RegisteredServer> loginServerOptional = server.getServer("login");
