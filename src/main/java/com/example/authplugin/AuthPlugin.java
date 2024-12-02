@@ -27,11 +27,7 @@ public class AuthPlugin {
     private RegisteredServer loginServer;
 
     @Inject
-    public AuthPlugin(
-        ProxyServer server, 
-        Logger logger, 
-        @DataDirectory Path dataDirectory
-    ) {
+    public AuthPlugin(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
         this.server = server;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
