@@ -193,7 +193,7 @@ public class AuthManager {
         if (survivalServer.isPresent()) {
             // 创建连接请求并送
             player.createConnectionRequest(survivalServer.get()).fireAndForget();
-            player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
+            player.sendMessage(Component.text("§a正在将���传送到生存服务器..."));
         } else {
             player.sendMessage(Component.text("§c错误：找不到生存服务器，请联系管理员！"));
         }
@@ -398,5 +398,32 @@ public class AuthManager {
             logger.error("检查正版账户时发生错误", e);
             return false;
         }
+    }
+
+    private boolean isPasswordStrong(String password) {
+        // 密码长度至少6位
+        if (password.length() < 6) {
+            return false;
+        }
+        
+        // 检查是否包含大写字母
+        boolean hasUpperCase = false;
+        // 检查是否包含小写字母
+        boolean hasLowerCase = false;
+        // 检查是否包含数字
+        boolean hasDigit = false;
+        
+        for (char c : password.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                hasUpperCase = true;
+            } else if (Character.isLowerCase(c)) {
+                hasLowerCase = true;
+            } else if (Character.isDigit(c)) {
+                hasDigit = true;
+            }
+        }
+        
+        // 必须同时包含大写字母、小写字母和数字
+        return hasUpperCase && hasLowerCase && hasDigit;
     }
 } 
