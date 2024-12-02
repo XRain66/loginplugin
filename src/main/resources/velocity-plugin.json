@@ -1,7 +1,7 @@
 {
   "id": "auth-plugin",
   "name": "Auth Plugin",
-  "version": "${version}",
+  "version": "1.0-SNAPSHOT",
   "description": "A simple auth plugin for Velocity",
   "authors": ["XRain666"],
   "dependencies": [],
