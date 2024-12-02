@@ -53,4 +53,8 @@ public class AuthPlugin {
     public ProxyServer getServer() {
         return server;
     }
+
+    public Logger getLogger() {
+        return logger;
+    }
 } 
