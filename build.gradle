@@ -37,9 +37,6 @@ dependencies {
     // Configurate
     implementation 'org.spongepowered:configurate-core:4.1.2'
     implementation 'org.spongepowered:configurate-yaml:4.1.2'
-    implementation 'org.spongepowered:configurate-hocon:4.1.2'
-    
-    implementation 'javax.inject:javax.inject:1'
 }
 
 sourceSets {

@@ -3,15 +3,14 @@ package com.example.authplugin;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
+import org.slf4j.Logger;
+
 import java.io.*;
 import java.util.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.objectmapping.ObjectMappingException;
-import com.google.common.reflect.TypeToken;
-import org.slf4j.Logger;
 
 public class AuthManager {
     private final Set<UUID> authenticatedPlayers = new HashSet<>();
@@ -47,18 +46,25 @@ public class AuthManager {
             }
 
             // 加载配置
-            ConfigurationNode root = YAMLConfigurationLoader.builder()
-                .setFile(configFile)
-                .build()
-                .load();
-
+            YamlConfigurationLoader loader = YamlConfigurationLoader.builder()
+                .file(configFile)
+                .build();
+            
+            ConfigurationNode root = loader.load();
+            
             List<String> players = new ArrayList<>();
-            for (ConfigurationNode node : root.getNode("allowed-offline-players").getChildrenList()) {
-                players.add(node.getString());
+            ConfigurationNode playersNode = root.node("allowed-offline-players");
+            if (!playersNode.virtual()) {
+                for (ConfigurationNode node : playersNode.childrenList()) {
+                    String player = node.getString();
+                    if (player != null) {
+                        players.add(player);
+                    }
+                }
             }
             allowedOfflinePlayers = players;
             
-            denyMessage = root.getNode("deny-message").getString(denyMessage);
+            denyMessage = root.node("deny-message").getString(denyMessage);
         } catch (Exception e) {
             logger.error("无法加载配置文件", e);
         }
