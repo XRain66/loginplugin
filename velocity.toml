@@ -1,0 +1,9 @@
+[server]
+# 启用在线验证
+online-mode = true
+
+# 启用混合模式验证
+force-key-authentication = false
+
+# 允许非正版玩家连接
+prevent-client-proxy-connections = false 

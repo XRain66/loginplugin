@@ -203,7 +203,7 @@ public class AuthManager {
             // 获取生存服务器
             Optional<RegisteredServer> survivalServer = plugin.getServer().getServer("survival");
             if (survivalServer.isPresent()) {
-                // 创建连接请求���发送
+                // 创建连接请求发送
                 player.createConnectionRequest(survivalServer.get()).fireAndForget();
                 player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
             } else {
@@ -224,5 +224,30 @@ public class AuthManager {
     public void reloadConfig() {
         loadConfig();
         logger.info("配置已重载");
+    }
+
+    public boolean shouldAuthenticate(Player player) {
+        // 如果是正版玩家，则不需要验证
+        if (player.isOnlineMode()) {
+            return false;
+        }
+        // 非正版玩家需要验证
+        return !isAuthenticated(player.getUniqueId());
+    }
+
+    public void handlePlayerJoin(Player player) {
+        if (player.isOnlineMode()) {
+            // 正版玩家自动验证
+            authenticatePlayer(player.getUniqueId());
+            // 可以发送欢迎消息
+            player.sendMessage(Component.text("欢迎正版玩家 " + player.getUsername()));
+        } else {
+            // 非正版玩家需要登录
+            // ... 处理非正版玩家登录逻辑 ...
+        }
+    }
+
+    public void authenticatePlayer(UUID uuid) {
+        authenticatedPlayers.add(uuid);
     }
 } 

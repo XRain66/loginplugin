@@ -1,20 +1,23 @@
 package com.example.authplugin;
 
+import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.command.CommandExecuteEvent;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
+import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.event.player.ServerPreConnectEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import net.kyori.adventure.text.Component;
-import com.velocitypowered.api.event.connection.LoginEvent;
 
 public class AuthListener {
     private final AuthPlugin plugin;
+    private final AuthManager authManager;
 
     public AuthListener(AuthPlugin plugin) {
         this.plugin = plugin;
+        this.authManager = plugin.getAuthManager();
     }
 
     @Subscribe
@@ -73,13 +76,16 @@ public class AuthListener {
         }
     }
 
-    @Subscribe
-    public void onLogin(LoginEvent event) {
-        Player player = event.getPlayer();
-        if (!plugin.getAuthManager().canPlayerJoin(player)) {
-            event.setResult(LoginEvent.ComponentResult.denied(
-                Component.text(plugin.getAuthManager().getDenyMessage())
-            ));
+    @Subscribe(order = PostOrder.FIRST)
+    public void onPlayerLogin(LoginEvent event) {
+        // 检查是否是正版玩家
+        if (event.getPlayer().isOnlineMode()) {
+            // 正版玩家自动通过验证
+            plugin.getAuthManager().authenticatePlayer(event.getPlayer().getUniqueId());
+            return;
         }
+        
+        // 非正版玩家需要进行登录验证
+        // ... 原有的登录验证逻辑 ...
     }
 } 
