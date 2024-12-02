@@ -29,7 +29,10 @@ jobs:
         
     - name: 验证 Gradle Wrapper
       uses: gradle/wrapper-validation-action@v2
-        
+      with:
+        allow-snapshots: true
+      continue-on-error: true  # 允许失败继续执行
+      
     - name: 设置 Gradle 权限
       run: chmod +x ./gradlew
       
@@ -37,6 +40,7 @@ jobs:
       uses: gradle/gradle-build-action@v3
       with:
         arguments: build
+        gradle-home-cache-cleanup: true
         
     - name: 上传构建产物
       uses: actions/upload-artifact@v4

@@ -3,7 +3,7 @@
   "name": "Auth Plugin",
   "version": "${version}",
   "description": "A simple auth plugin for Velocity",
-  "authors": ["YourName"],
+  "authors": ["XRain666"],
   "dependencies": [],
   "main": "com.example.authplugin.AuthPlugin"
 } 
