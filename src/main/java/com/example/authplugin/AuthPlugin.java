@@ -18,13 +18,16 @@ import java.nio.file.Path;
     authors = {"XRain666"}
 )
 public class AuthPlugin {
-    private final ProxyServer server;
-    private final Logger logger;
-    private final Path dataDirectory;
+    private ProxyServer server;
+    private Logger logger;
+    private Path dataDirectory;
     private AuthManager authManager;
 
+    public AuthPlugin() {
+    }
+
     @Inject
-    public AuthPlugin(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
+    public void init(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
         this.server = server;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
