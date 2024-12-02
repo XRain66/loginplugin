@@ -37,15 +37,12 @@ public class AuthPlugin {
         this.dataDirectory = dataDirectory;
     }
 
-    @Inject
-    public void setAuthManager(AuthManager authManager) {
-        this.authManager = authManager;
-    }
-
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
         try {
             logger.info("Auth Plugin 正在初始化...");
+            
+            this.authManager = new AuthManager(this, server, logger);
             
             Optional<RegisteredServer> loginServerOptional = server.getServer("login");
             if (!loginServerOptional.isPresent()) {
