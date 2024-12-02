@@ -1,6 +1,6 @@
 package com.example.authplugin;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
@@ -21,6 +21,11 @@ public class AuthPlugin {
     private final Logger logger;
     private AuthManager authManager;
     private RegisteredServer loginServer;
+
+    public AuthPlugin() {
+        this.server = null;
+        this.logger = null;
+    }
 
     @Inject
     public AuthPlugin(ProxyServer server, Logger logger) {
