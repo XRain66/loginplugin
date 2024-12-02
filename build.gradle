@@ -24,7 +24,7 @@ dependencies {
     annotationProcessor 'com.velocitypowered:velocity-api:3.1.1-SNAPSHOT'
     
     // 添加必要的依赖
-    compileOnly 'com.google.inject:guice:5.1.0'
+    compileOnly 'com.google.inject:guice:4.2.2'
     compileOnly 'org.slf4j:slf4j-api:1.7.32'
     
     // Adventure API
