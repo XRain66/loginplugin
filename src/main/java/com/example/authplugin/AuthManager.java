@@ -3,45 +3,178 @@ package com.example.authplugin;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
-import java.util.Optional;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.io.*;
+import java.util.*;
+import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
+import ninja.leaping.configurate.ConfigurationNode;
+import java.util.List;
+import java.util.ArrayList;
 
 public class AuthManager {
     private final Set<UUID> authenticatedPlayers = new HashSet<>();
-    private static final String CORRECT_PASSWORD = "your_password_here";
+    private final Map<UUID, String> playerPasswords = new HashMap<>();
     private final AuthPlugin plugin;
+    private final File passwordFile;
+    private final File configFile;
+    private List<String> allowedOfflinePlayers;
+    private String denyMessage;
 
     public AuthManager(AuthPlugin plugin) {
         this.plugin = plugin;
+        this.passwordFile = new File("plugins/auth-plugin/passwords.txt");
+        this.configFile = new File("plugins/auth-plugin/config.yml");
+        this.allowedOfflinePlayers = new ArrayList<>();
+        this.denyMessage = "§c对不起，该用户不允许离线登录！请联系管理员";
+        loadConfig();
+        loadPasswords();
+    }
+
+    private void loadConfig() {
+        try {
+            // 确保目录存在
+            configFile.getParentFile().mkdirs();
+            
+            // 如果配置文件不存在，从资源中复制
+            if (!configFile.exists()) {
+                try (InputStream in = plugin.getClass().getResourceAsStream("/config.yml")) {
+                    Files.copy(in, configFile.toPath());
+                }
+            }
+
+            // 加载配置
+            ConfigurationNode root = YAMLConfigurationLoader.builder()
+                .setFile(configFile)
+                .build()
+                .load();
+
+            allowedOfflinePlayers = root.getNode("allowed-offline-players").getList(TypeToken.of(String.class));
+            denyMessage = root.getNode("deny-message").getString(denyMessage);
+        } catch (Exception e) {
+            plugin.getLogger().error("无法加载配置文件", e);
+        }
+    }
+
+    public boolean canPlayerJoin(Player player) {
+        // 如果是正版登录，直接允许
+        if (player.isOnlineMode()) {
+            return true;
+        }
+        
+        // 检查玩家是否在允许列表中
+        return allowedOfflinePlayers.contains(player.getUsername());
+    }
+
+    public String getDenyMessage() {
+        return denyMessage;
+    }
+
+    private void loadPasswords() {
+        try {
+            // 确保目录存在
+            passwordFile.getParentFile().mkdirs();
+            
+            // 如果文件不存在，创建它
+            if (!passwordFile.exists()) {
+                passwordFile.createNewFile();
+                return;
+            }
+
+            // 读取密码文件
+            try (BufferedReader reader = new BufferedReader(new FileReader(passwordFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split(":");
+                    if (parts.length == 3) {
+                        UUID uuid = UUID.fromString(parts[0]);
+                        playerPasswords.put(uuid, parts[2]);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            plugin.getLogger().error("无法加载密码文件", e);
+        }
+    }
+
+    private void savePasswords() {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(passwordFile))) {
+            for (Map.Entry<UUID, String> entry : playerPasswords.entrySet()) {
+                Player player = plugin.getServer().getPlayer(entry.getKey()).orElse(null);
+                if (player != null) {
+                    // 格式：UUID:玩家名:密码
+                    writer.println(entry.getKey() + ":" + player.getUsername() + ":" + entry.getValue());
+                }
+            }
+        } catch (IOException e) {
+            plugin.getLogger().error("无法保存密码文件", e);
+        }
     }
 
     public boolean isAuthenticated(Player player) {
         return player.isOnlineMode() || authenticatedPlayers.contains(player.getUniqueId());
     }
 
+    public boolean isRegistered(Player player) {
+        return playerPasswords.containsKey(player.getUniqueId());
+    }
+
+    public boolean register(Player player, String password) {
+        if (isRegistered(player)) {
+            player.sendMessage(Component.text("§c你已经注册过了！"));
+            return false;
+        }
+        
+        playerPasswords.put(player.getUniqueId(), password);
+        authenticatedPlayers.add(player.getUniqueId());
+        savePasswords();  // 保存到文件
+        
+        player.sendMessage(Component.text("§a注册成功！"));
+        
+        // 获取生存服务器
+        Optional<RegisteredServer> survivalServer = plugin.getServer().getServer("survival");
+        if (survivalServer.isPresent()) {
+            // 创建连接请求并发送
+            player.createConnectionRequest(survivalServer.get()).fireAndForget();
+            player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
+        } else {
+            player.sendMessage(Component.text("§c错误：找不到生存服务器，请联系管理员！"));
+        }
+        
+        return true;
+    }
+
     public boolean authenticate(Player player, String password) {
-        if (password.equals(CORRECT_PASSWORD)) {
+        if (!isRegistered(player)) {
+            player.sendMessage(Component.text("§c你还没有注册！请使用 /register <密码> 注册"));
+            return false;
+        }
+
+        if (password.equals(playerPasswords.get(player.getUniqueId()))) {
             authenticatedPlayers.add(player.getUniqueId());
             player.sendMessage(Component.text("§a登录成功！"));
             
-            // 获取大厅服务器
-            Optional<RegisteredServer> lobbyServer = plugin.getServer().getServer("survival");
-            if (lobbyServer.isPresent()) {
+            // 获取生存服务器
+            Optional<RegisteredServer> survivalServer = plugin.getServer().getServer("survival");
+            if (survivalServer.isPresent()) {
                 // 创建连接请求并发送
-                player.createConnectionRequest(lobbyServer.get()).fireAndForget();
-                player.sendMessage(Component.text("§a正在将你传送到生存服..."));
+                player.createConnectionRequest(survivalServer.get()).fireAndForget();
+                player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
             } else {
-                player.sendMessage(Component.text("§c错误：找不到生存服，请联系管理员！"));
+                player.sendMessage(Component.text("§c错误：找不到生存服务器，请联系管理员！"));
             }
             
             return true;
         }
+        
+        player.sendMessage(Component.text("§c密码错误！"));
         return false;
     }
 
     public void removePlayer(Player player) {
         authenticatedPlayers.remove(player.getUniqueId());
+    }
+
+    public void reloadConfig() {
+        loadConfig();
+        plugin.getLogger().info("配置已重载");
     }
 } 

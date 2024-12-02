@@ -1,0 +1,8 @@
+# 允许离线登录的玩家列表
+allowed-offline-players:
+  - "Player1"
+  - "Player2"
+  - "XRain666"
+
+# 不允许离线登录的提示消息
+deny-message: "§c对不起，该用户不允许离线登录！请联系管理员" 

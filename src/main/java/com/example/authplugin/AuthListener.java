@@ -8,6 +8,7 @@ import com.velocitypowered.api.event.player.ServerPreConnectEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import net.kyori.adventure.text.Component;
+import com.velocitypowered.api.event.connection.LoginEvent;
 
 public class AuthListener {
     private final AuthPlugin plugin;
@@ -43,7 +44,6 @@ public class AuthListener {
 
     @Subscribe
     public void onCommand(CommandExecuteEvent event) {
-        // 如果不是玩家执行的命令，直接返回
         if (!(event.getCommandSource() instanceof Player)) {
             return;
         }
@@ -51,10 +51,16 @@ public class AuthListener {
         Player player = (Player) event.getCommandSource();
         String command = event.getCommand().toLowerCase();
 
-        // 如果玩家未登录且不是login命令，则取消命令执行
-        if (!plugin.getAuthManager().isAuthenticated(player) && !command.startsWith("login")) {
+        // 如果玩家未登录且不是login或register命令，则取消命令执行
+        if (!plugin.getAuthManager().isAuthenticated(player) && 
+            !command.startsWith("login") && 
+            !command.startsWith("register")) {
             event.setResult(CommandExecuteEvent.CommandResult.denied());
-            player.sendMessage(Component.text("§c请先登录后再使用命令！"));
+            if (plugin.getAuthManager().isRegistered(player)) {
+                player.sendMessage(Component.text("§c请先使用 /login <密码> 登录！"));
+            } else {
+                player.sendMessage(Component.text("§c请先使用 /register <密码> 注册！"));
+            }
         }
     }
 
@@ -64,6 +70,16 @@ public class AuthListener {
         if (!plugin.getAuthManager().isAuthenticated(player)) {
             event.setResult(PlayerChatEvent.ChatResult.denied());
             player.sendMessage(Component.text("§c请先登录后再聊天！"));
+        }
+    }
+
+    @Subscribe
+    public void onLogin(LoginEvent event) {
+        Player player = event.getPlayer();
+        if (!plugin.getAuthManager().canPlayerJoin(player)) {
+            event.setResult(LoginEvent.ComponentResult.denied(
+                Component.text(plugin.getAuthManager().getDenyMessage())
+            ));
         }
     }
 } 

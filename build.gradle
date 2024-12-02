@@ -16,23 +16,20 @@ repositories {
         name = 'velocity'
         url = 'https://repo.velocitypowered.com/snapshots/'
     }
-    maven {
-        name = 'sonatype'
-        url = 'https://oss.sonatype.org/content/repositories/snapshots/'
-    }
 }
 
 dependencies {
     // Velocity API
     annotationProcessor 'com.velocitypowered:velocity-api:3.2.0-SNAPSHOT'
-    compileOnly 'com.velocitypowered:velocity-api:3.2.0-SNAPSHOT'
+    implementation 'com.velocitypowered:velocity-api:3.2.0-SNAPSHOT'
     
     // 添加必要的依赖
-    compileOnly 'com.google.inject:guice:5.1.0'
-    compileOnly 'org.slf4j:slf4j-api:2.0.7'
-    compileOnly 'net.kyori:adventure-api:4.14.0'
-    compileOnly 'net.kyori:adventure-text-minimessage:4.14.0'
-    compileOnly 'com.google.guava:guava:31.1-jre'
+    implementation 'com.google.inject:guice:5.1.0'
+    implementation 'org.slf4j:slf4j-api:2.0.7'
+    implementation 'net.kyori:adventure-api:4.14.0'
+    implementation 'net.kyori:adventure-text-minimessage:4.14.0'
+    implementation 'com.google.guava:guava:31.1-jre'
+    implementation 'org.spongepowered:configurate-yaml:3.7.3'
 }
 
 sourceSets {
@@ -65,6 +62,13 @@ shadowJar {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
     archiveBaseName.set(project.name)
     archiveClassifier.set('')
+    
+    // 重定位依赖，避免冲突
+    relocate 'com.google.inject', 'com.example.authplugin.lib.guice'
+    relocate 'com.google.guava', 'com.example.authplugin.lib.guava'
+    relocate 'org.slf4j', 'com.example.authplugin.lib.slf4j'
+    relocate 'net.kyori', 'com.example.authplugin.lib.kyori'
+    
     minimize()
 }
 

@@ -38,6 +38,8 @@ public class AuthPlugin {
         server.getEventManager().register(this, new AuthListener(this));
         // 注册命令
         server.getCommandManager().register("login", new LoginCommand(authManager));
+        server.getCommandManager().register("register", new RegisterCommand(authManager));
+        server.getCommandManager().register("authreload", new ReloadCommand(this));
     }
 
     public AuthManager getAuthManager() {
