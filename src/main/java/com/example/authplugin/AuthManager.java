@@ -5,10 +5,13 @@ import net.kyori.adventure.text.Component;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import java.io.*;
 import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 import ninja.leaping.configurate.ConfigurationNode;
-import java.util.List;
-import java.util.ArrayList;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import com.google.common.reflect.TypeToken;
+import org.slf4j.Logger;
 
 public class AuthManager {
     private final Set<UUID> authenticatedPlayers = new HashSet<>();
@@ -18,9 +21,11 @@ public class AuthManager {
     private final File configFile;
     private List<String> allowedOfflinePlayers;
     private String denyMessage;
+    private final Logger logger;
 
     public AuthManager(AuthPlugin plugin) {
         this.plugin = plugin;
+        this.logger = plugin.getServer().getPluginManager().getLogger();
         this.passwordFile = new File("plugins/auth-plugin/passwords.txt");
         this.configFile = new File("plugins/auth-plugin/config.yml");
         this.allowedOfflinePlayers = new ArrayList<>();
@@ -37,7 +42,7 @@ public class AuthManager {
             // 如果配置文件不存在，从资源中复制
             if (!configFile.exists()) {
                 try (InputStream in = plugin.getClass().getResourceAsStream("/config.yml")) {
-                    Files.copy(in, configFile.toPath());
+                    Files.copy(in, configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 }
             }
 
@@ -47,10 +52,12 @@ public class AuthManager {
                 .build()
                 .load();
 
-            allowedOfflinePlayers = root.getNode("allowed-offline-players").getList(TypeToken.of(String.class));
+            @SuppressWarnings("serial")
+            TypeToken<List<String>> listToken = new TypeToken<List<String>>() {};
+            allowedOfflinePlayers = root.getNode("allowed-offline-players").getList(listToken);
             denyMessage = root.getNode("deny-message").getString(denyMessage);
         } catch (Exception e) {
-            plugin.getLogger().error("无法加载配置文件", e);
+            logger.error("无法加载配置文件", e);
         }
     }
 
@@ -91,7 +98,7 @@ public class AuthManager {
                 }
             }
         } catch (IOException e) {
-            plugin.getLogger().error("无法加载密码文件", e);
+            logger.error("无法加载密码文件", e);
         }
     }
 
@@ -105,7 +112,7 @@ public class AuthManager {
                 }
             }
         } catch (IOException e) {
-            plugin.getLogger().error("无法保存密码文件", e);
+            logger.error("无法保存密码文件", e);
         }
     }
 
@@ -175,6 +182,6 @@ public class AuthManager {
 
     public void reloadConfig() {
         loadConfig();
-        plugin.getLogger().info("配置已重载");
+        logger.info("配置已重载");
     }
 } 
