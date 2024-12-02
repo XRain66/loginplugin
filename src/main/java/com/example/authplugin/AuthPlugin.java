@@ -22,13 +22,11 @@ public class AuthPlugin {
     private AuthManager authManager;
     private RegisteredServer loginServer;
 
-    public AuthPlugin() {
-        this.server = null;
-        this.logger = null;
-    }
-
     @Inject
     public AuthPlugin(ProxyServer server, Logger logger) {
+        if (server == null || logger == null) {
+            throw new IllegalArgumentException("Dependencies cannot be null");
+        }
         this.server = server;
         this.logger = logger;
     }
