@@ -24,9 +24,6 @@ public class AuthPlugin {
 
     @Inject
     public AuthPlugin(ProxyServer server, Logger logger) {
-        if (server == null || logger == null) {
-            throw new IllegalArgumentException("Dependencies cannot be null");
-        }
         this.server = server;
         this.logger = logger;
     }
