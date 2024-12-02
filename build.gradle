@@ -20,14 +20,14 @@ repositories {
 
 dependencies {
     // Velocity API
-    compileOnly 'com.velocitypowered:velocity-api:3.1.1-SNAPSHOT'
     annotationProcessor 'com.velocitypowered:velocity-api:3.1.1-SNAPSHOT'
+    implementation 'com.velocitypowered:velocity-api:3.1.1-SNAPSHOT'
     
     // 必要的依赖
-    compileOnly 'com.google.inject:guice:4.2.2'
-    compileOnly 'org.slf4j:slf4j-api:1.7.32'
-    compileOnly 'net.kyori:adventure-api:4.14.0'
-    compileOnly 'net.kyori:adventure-text-minimessage:4.14.0'
+    implementation 'com.google.inject:guice:4.2.2'
+    implementation 'org.slf4j:slf4j-api:1.7.32'
+    implementation 'net.kyori:adventure-api:4.14.0'
+    implementation 'net.kyori:adventure-text-minimessage:4.14.0'
     
     // Configurate
     implementation 'org.spongepowered:configurate-core:4.1.2'
@@ -35,7 +35,7 @@ dependencies {
     implementation 'org.spongepowered:configurate-hocon:4.1.2'
     
     // 其他依赖
-    compileOnly 'com.google.guava:guava:21.0'
+    implementation 'com.google.guava:guava:21.0'
 }
 
 // 设置文件重复处理策略

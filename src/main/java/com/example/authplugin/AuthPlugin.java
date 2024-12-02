@@ -20,7 +20,7 @@ public class AuthPlugin {
     private AuthManager authManager;
 
     @Inject
-    public AuthPlugin(ProxyServer server, Logger logger) {
+    public AuthPlugin(final ProxyServer server, final Logger logger) {
         this.server = server;
         this.logger = logger;
     }
