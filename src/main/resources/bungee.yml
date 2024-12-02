@@ -1,0 +1,4 @@
+name: AuthPlugin
+main: com.example.authplugin.AuthPlugin
+version: 1.0-SNAPSHOT
+author: YourName 

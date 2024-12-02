@@ -1,0 +1,20 @@
+# 设置默认行为，以防人们没有设置 core.autocrlf
+* text=auto eol=lf
+
+# 明确声明应该被规范化的文本文件
+*.java text
+*.gradle text
+*.properties text
+*.xml text
+*.yml text
+*.yaml text
+*.json text
+*.txt text
+*.md text
+
+# 声明二进制文件，不应该被修改
+*.jar binary
+*.war binary
+*.zip binary
+*.tar binary
+*.gz binary 

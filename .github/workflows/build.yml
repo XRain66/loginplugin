@@ -1,0 +1,65 @@
+name: Build Plugin
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # 配置 Git 以处理行尾问题
+    - name: 配置 Git 行尾
+      run: |
+        git config --global core.autocrlf false
+        git config --global core.eol lf
+    
+    - uses: actions/checkout@v3
+      with:
+        # 使用 auto 来处理行尾
+        line-endings: auto
+    
+    - name: 设置 JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: 'gradle'
+        
+    - name: 验证 Gradle Wrapper
+      uses: gradle/wrapper-validation-action@v1
+        
+    - name: 设置 Gradle 权限
+      run: chmod +x ./gradlew
+      
+    - name: 使用 Gradle 构建
+      uses: gradle/gradle-build-action@v2
+      with:
+        arguments: build
+        
+    - name: 上传构建产物
+      uses: actions/upload-artifact@v3
+      with:
+        name: Plugin-Artifacts
+        path: build/libs/*.jar
+        
+    - name: 生成发布信息
+      if: startsWith(github.ref, 'refs/tags/')
+      id: release_info
+      run: |
+        echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        
+    - name: 创建发布
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: build/libs/*.jar
+        name: Release ${{ steps.release_info.outputs.version }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
