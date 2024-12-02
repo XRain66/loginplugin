@@ -13,6 +13,8 @@ import java.io.*;
 import java.util.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class AuthManager {
     private final Set<UUID> authenticatedPlayers = new HashSet<>();
@@ -207,7 +209,7 @@ public class AuthManager {
                 player.createConnectionRequest(survivalServer.get()).fireAndForget();
                 player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
             } else {
-                player.sendMessage(Component.text("§c错误：找不到生存服务器，请联系管理员！"));
+                player.sendMessage(Component.text("§c错误：找不到生存��务器，请联系管理员！"));
             }
             
             return true;
@@ -235,15 +237,39 @@ public class AuthManager {
         return !authenticatedPlayers.contains(player.getUniqueId());
     }
 
+    private boolean checkPremiumAccount(String username) {
+        try {
+            // 构建 Mojang API URL
+            URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + username);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                // 状态码 200 表示找到了这个正版账户
+                return true;
+            } else if (responseCode == 404) {
+                // 状态码 404 表示这不是正版账户
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error("检查正版账户时发生错误", e);
+        }
+        return false;
+    }
+
     public void handlePlayerJoin(Player player) {
-        if (player.isOnlineMode()) {
-            // 正版玩家自动验证
+        String username = player.getUsername();
+        if (checkPremiumAccount(username)) {
+            // 是正版玩家
             authenticatePlayer(player.getUniqueId());
-            // 可以发送欢迎消息
-            player.sendMessage(Component.text("欢迎正版玩家 " + player.getUsername()));
+            player.sendMessage(Component.text("§a欢迎正版玩家 " + username));
         } else {
             // 非正版玩家需要登录
-            // ... 处理非正版玩家登录逻辑 ...
+            player.sendMessage(Component.text("§e请使用 /login <密码> 登录"));
+            player.sendMessage(Component.text("§e如果没有账号，请使用 /register <密码> 注册"));
         }
     }
 

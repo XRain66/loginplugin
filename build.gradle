@@ -34,6 +34,10 @@ dependencies {
     // Configurate for YAML configuration
     implementation 'org.spongepowered:configurate-core:4.1.2'
     implementation 'org.spongepowered:configurate-yaml:4.1.2'
+    
+    // 添加其他必要的依赖
+    compileOnly 'org.spongepowered:configurate-hocon:4.1.2'
+    compileOnly 'com.google.guava:guava:30.1-jre'
 }
 
 // 设置文件重复处理策略
@@ -53,6 +57,8 @@ shadowJar {
     
     // 重定位依赖，避免冲突
     relocate 'org.spongepowered.configurate', 'com.example.authplugin.libs.configurate'
+    relocate 'com.google', 'com.example.authplugin.libs.google'
+    relocate 'org.yaml', 'com.example.authplugin.libs.yaml'
     
     // 设置重复处理策略
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
