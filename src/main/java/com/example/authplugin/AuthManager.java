@@ -25,7 +25,7 @@ public class AuthManager {
 
     public AuthManager(AuthPlugin plugin) {
         this.plugin = plugin;
-        this.logger = plugin.getServer().getPluginManager().getLogger();
+        this.logger = plugin.getLogger();
         this.passwordFile = new File("plugins/auth-plugin/passwords.txt");
         this.configFile = new File("plugins/auth-plugin/config.yml");
         this.allowedOfflinePlayers = new ArrayList<>();
@@ -52,9 +52,12 @@ public class AuthManager {
                 .build()
                 .load();
 
-            @SuppressWarnings("serial")
-            TypeToken<List<String>> listToken = new TypeToken<List<String>>() {};
-            allowedOfflinePlayers = root.getNode("allowed-offline-players").getList(listToken);
+            List<String> players = new ArrayList<>();
+            for (ConfigurationNode node : root.getNode("allowed-offline-players").getChildrenList()) {
+                players.add(node.getString());
+            }
+            allowedOfflinePlayers = players;
+            
             denyMessage = root.getNode("deny-message").getString(denyMessage);
         } catch (Exception e) {
             logger.error("无法加载配置文件", e);
