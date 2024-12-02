@@ -22,7 +22,7 @@ public class RegisterCommand implements SimpleCommand {
         String[] args = invocation.arguments();
 
         if (args.length != 1) {
-            player.sendMessage(Component.text("§c使用方法: /register <密码>"));
+            player.sendMessage(Component.text("§c用法: /register <密码>"));
             return;
         }
 
@@ -31,7 +31,6 @@ public class RegisterCommand implements SimpleCommand {
             return;
         }
 
-        String password = args[0];
-        authManager.register(player, password);
+        authManager.register(player, args[0]);
     }
 } 

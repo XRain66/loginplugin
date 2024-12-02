@@ -90,22 +90,27 @@ public class AuthListener {
     public void onLogin(LoginEvent event) {
         Player player = event.getPlayer();
         
+        // 检查是否是正版玩家
         if (player.isOnlineMode()) {
             // 正版玩家自动通过验证
             plugin.getAuthManager().authenticatePlayer(player.getUniqueId());
             player.sendMessage(Component.text("§a欢迎正版玩家 " + player.getUsername()));
+            
+            // 直接传送到生存服务器
+            Optional<RegisteredServer> survivalServer = plugin.getServer().getServer("survival");
+            if (survivalServer.isPresent()) {
+                player.createConnectionRequest(survivalServer.get()).fireAndForget();
+            }
         } else {
-            // 非正版玩家强制进入登录服务器
+            // 非正版玩家需要登录验证
             player.sendMessage(Component.text("§e请使用 /login <密码> 登录"));
             player.sendMessage(Component.text("§e如果没有账号，请使用 /register <密码> 注册"));
             
-            // 确保玩家会被传送到登录服务器
-            plugin.getServer().getScheduler().buildTask(plugin, () -> {
-                Optional<RegisteredServer> loginServer = plugin.getServer().getServer("login");
-                if (loginServer.isPresent()) {
-                    player.createConnectionRequest(loginServer.get()).fireAndForget();
-                }
-            }).delay(500, TimeUnit.MILLISECONDS).schedule();
+            // 强制传送到登录服务器
+            Optional<RegisteredServer> loginServer = plugin.getServer().getServer("login");
+            if (loginServer.isPresent()) {
+                player.createConnectionRequest(loginServer.get()).fireAndForget();
+            }
         }
     }
 } 

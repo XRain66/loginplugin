@@ -43,6 +43,9 @@ public class AuthPlugin {
         this.authManager = new AuthManager(this, server, logger);
         server.getEventManager().register(this, new AuthListener(this));
         
+        server.getCommandManager().register("login", new LoginCommand(authManager));
+        server.getCommandManager().register("register", new RegisterCommand(authManager));
+        
         logger.info("Auth Plugin 已加载！");
     }
 

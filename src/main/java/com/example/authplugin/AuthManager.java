@@ -164,7 +164,12 @@ public class AuthManager {
     }
 
     public boolean isAuthenticated(Player player) {
-        return player.isOnlineMode() || authenticatedPlayers.contains(player.getUniqueId());
+        // 正版玩家直接返回 true
+        if (player.isOnlineMode()) {
+            return true;
+        }
+        // 非正版玩家检查是否已登录
+        return authenticatedPlayers.contains(player.getUniqueId());
     }
 
     public boolean isRegistered(Player player) {
@@ -193,7 +198,7 @@ public class AuthManager {
         if (survivalServer.isPresent()) {
             // 创建连接请求并送
             player.createConnectionRequest(survivalServer.get()).fireAndForget();
-            player.sendMessage(Component.text("§a正在将���传送到生存服务器..."));
+            player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
         } else {
             player.sendMessage(Component.text("§c错误：找不到生存服务器，请联系管理员！"));
         }

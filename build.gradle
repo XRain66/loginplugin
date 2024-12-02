@@ -23,14 +23,19 @@ dependencies {
     compileOnly 'com.velocitypowered:velocity-api:3.1.1-SNAPSHOT'
     annotationProcessor 'com.velocitypowered:velocity-api:3.1.1-SNAPSHOT'
     
-    // 只保留必要的依赖
+    // 必要的依赖
     compileOnly 'com.google.inject:guice:4.2.2'
     compileOnly 'org.slf4j:slf4j-api:1.7.32'
+    compileOnly 'net.kyori:adventure-api:4.14.0'
+    compileOnly 'net.kyori:adventure-text-minimessage:4.14.0'
     
-    // 添加 Configurate 依赖
+    // Configurate
     implementation 'org.spongepowered:configurate-core:4.1.2'
     implementation 'org.spongepowered:configurate-yaml:4.1.2'
     implementation 'org.spongepowered:configurate-hocon:4.1.2'
+    
+    // 其他依赖
+    compileOnly 'com.google.guava:guava:21.0'
 }
 
 // 设置文件重复处理策略
@@ -38,7 +43,6 @@ tasks.withType(Copy).configureEach {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
-// 设置 jar 任务的重复处理策略
 tasks.named('jar') {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
@@ -48,10 +52,11 @@ shadowJar {
     archiveClassifier.set('')
     archiveVersion.set(project.version.toString())
     
-    // 重定位依赖，避免冲突
+    // 重定位依赖
     relocate 'org.spongepowered.configurate', 'com.example.authplugin.libs.configurate'
+    relocate 'com.google', 'com.example.authplugin.libs.google'
+    relocate 'org.yaml', 'com.example.authplugin.libs.yaml'
     
-    // 设置重复处理策略
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
@@ -65,4 +70,16 @@ java {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.compilerArgs += ["-parameters"]
+}
+
+// 确保源代码目录结构正确
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
 } 

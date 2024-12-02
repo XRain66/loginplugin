@@ -22,7 +22,7 @@ public class LoginCommand implements SimpleCommand {
         String[] args = invocation.arguments();
 
         if (args.length != 1) {
-            player.sendMessage(Component.text("§c使用方法: /login <密码>"));
+            player.sendMessage(Component.text("§c用法: /login <密码>"));
             return;
         }
 
@@ -31,11 +31,6 @@ public class LoginCommand implements SimpleCommand {
             return;
         }
 
-        String password = args[0];
-        if (authManager.authenticate(player, password)) {
-            player.sendMessage(Component.text("§a登录成功！"));
-        } else {
-            player.sendMessage(Component.text("§c密码错误！"));
-        }
+        authManager.authenticate(player, args[0]);
     }
 } 
