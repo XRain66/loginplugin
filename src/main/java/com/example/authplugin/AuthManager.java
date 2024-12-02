@@ -67,11 +67,18 @@ public class AuthManager {
     public boolean canPlayerJoin(Player player) {
         // 如果是正版登录，直接允许
         if (player.isOnlineMode()) {
+            logger.info("正版玩家 " + player.getUsername() + " 正在连接...");
             return true;
         }
         
-        // 检查玩家是否在允许列表中
-        return allowedOfflinePlayers.contains(player.getUsername());
+        // 检查离线玩家是否在允许列表中
+        boolean allowed = allowedOfflinePlayers.contains(player.getUsername());
+        if (!allowed) {
+            logger.info("离线玩家 " + player.getUsername() + " 尝试连接但不在白名单中");
+        } else {
+            logger.info("白名单离线玩家 " + player.getUsername() + " 正在连接...");
+        }
+        return allowed;
     }
 
     public String getDenyMessage() {
@@ -142,7 +149,7 @@ public class AuthManager {
         // 获取生存服务器
         Optional<RegisteredServer> survivalServer = plugin.getServer().getServer("survival");
         if (survivalServer.isPresent()) {
-            // 创建连接请求并发送
+            // 创建连接请求并���送
             player.createConnectionRequest(survivalServer.get()).fireAndForget();
             player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
         } else {
@@ -169,7 +176,7 @@ public class AuthManager {
                 player.createConnectionRequest(survivalServer.get()).fireAndForget();
                 player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
             } else {
-                player.sendMessage(Component.text("§c错误：找不到生存服务器，请联系管理员！"));
+                player.sendMessage(Component.text("§c错误：找不���生存服务器，请联系管理员！"));
             }
             
             return true;

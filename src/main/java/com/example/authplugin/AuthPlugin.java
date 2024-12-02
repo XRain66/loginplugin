@@ -13,7 +13,7 @@ import java.util.Optional;
     id = "auth-plugin",
     name = "Auth Plugin",
     version = "1.0-SNAPSHOT",
-    authors = {"YourName"},
+    authors = {"XRain666"},
     description = "A simple auth plugin for Velocity"
 )
 public class AuthPlugin {
