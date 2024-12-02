@@ -43,6 +43,15 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += ["-parameters"]
 }
 
+// 设置文件重复处理策略
+tasks.withType(Copy).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
 shadowJar {
     archiveBaseName.set(project.name)
     archiveClassifier.set('')
