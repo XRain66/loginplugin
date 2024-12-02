@@ -2,8 +2,9 @@ package com.example.authplugin;
 
 import com.google.inject.Inject;
 import com.velocitypowered.api.proxy.Player;
-import net.kyori.adventure.text.Component;
+import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import net.kyori.adventure.text.Component;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 import org.slf4j.Logger;
@@ -202,7 +203,7 @@ public class AuthManager {
             // 获取生存服务器
             Optional<RegisteredServer> survivalServer = plugin.getServer().getServer("survival");
             if (survivalServer.isPresent()) {
-                // 创建连接请求并发送
+                // 创建连接请求���发送
                 player.createConnectionRequest(survivalServer.get()).fireAndForget();
                 player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
             } else {
