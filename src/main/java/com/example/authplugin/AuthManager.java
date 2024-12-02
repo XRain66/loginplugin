@@ -193,7 +193,7 @@ public class AuthManager {
         if (survivalServer.isPresent()) {
             // 创建连接请求并送
             player.createConnectionRequest(survivalServer.get()).fireAndForget();
-            player.sendMessage(Component.text("§a正在将���传送到生存服务器..."));
+            player.sendMessage(Component.text("§a正在将你传送到生存服务器..."));
         } else {
             player.sendMessage(Component.text("§c错误：找不到生存服务器，请联系管理员！"));
         }
@@ -227,8 +227,6 @@ public class AuthManager {
 
         if (password.equals(playerPasswords.get(playerId))) {
             authenticatedPlayers.add(playerId);
-        if (password.equals(playerPasswords.get(player.getUniqueId()))) {
-            authenticatedPlayers.add(player.getUniqueId());
             player.sendMessage(Component.text("§a登录成功！"));
             
             // 获取生存服务器
@@ -244,6 +242,8 @@ public class AuthManager {
             return true;
         }
         
+        // 增加失败次数
+        loginAttempts.put(playerId, loginAttempts.getOrDefault(playerId, 0) + 1);
         player.sendMessage(Component.text("§c密码错误！"));
         return false;
     }
