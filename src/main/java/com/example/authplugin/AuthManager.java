@@ -1,5 +1,6 @@
 package com.example.authplugin;
 
+import com.google.inject.Inject;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
@@ -16,15 +17,19 @@ public class AuthManager {
     private final Set<UUID> authenticatedPlayers = new HashSet<>();
     private final Map<UUID, String> playerPasswords = new HashMap<>();
     private final AuthPlugin plugin;
+    private final ProxyServer server;
+    private final Logger logger;
     private final File passwordFile;
     private final File configFile;
     private List<String> allowedOfflinePlayers;
     private String denyMessage;
-    private final Logger logger;
 
-    public AuthManager(AuthPlugin plugin) {
+    @Inject
+    public AuthManager(AuthPlugin plugin, ProxyServer server, Logger logger) {
         this.plugin = plugin;
-        this.logger = plugin.getLogger();
+        this.server = server;
+        this.logger = logger;
+        
         this.passwordFile = new File("plugins/auth-plugin/passwords.txt");
         this.configFile = new File("plugins/auth-plugin/config.yml");
         this.allowedOfflinePlayers = new ArrayList<>();
@@ -72,7 +77,7 @@ public class AuthManager {
 
     public boolean canPlayerJoin(Player player) {
         // 获取 Velocity 的 online-mode 设置
-        boolean velocityOnlineMode = plugin.getServer().getConfiguration().isOnlineMode();
+        boolean velocityOnlineMode = this.server.getConfiguration().isOnlineMode();
         
         // 如果 Velocity 设置为 online-mode=true
         if (velocityOnlineMode) {
@@ -103,7 +108,7 @@ public class AuthManager {
     }
 
     public String getDenyMessage() {
-        boolean velocityOnlineMode = plugin.getServer().getConfiguration().isOnlineMode();
+        boolean velocityOnlineMode = this.server.getConfiguration().isOnlineMode();
         if (velocityOnlineMode) {
             return "§c服务器已开启正版验证，请使用正版账户进入！";
         }
