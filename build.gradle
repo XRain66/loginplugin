@@ -27,7 +27,7 @@ dependencies {
     compileOnly 'com.google.inject:guice:5.1.0'
     compileOnly 'org.slf4j:slf4j-api:1.7.32'
     
-    // Adventure API (包含在 Velocity API 中，但为了明确依赖关系)
+    // Adventure API
     compileOnly 'net.kyori:adventure-api:4.14.0'
     compileOnly 'net.kyori:adventure-text-minimessage:4.14.0'
     

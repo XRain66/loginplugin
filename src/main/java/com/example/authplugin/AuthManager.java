@@ -232,7 +232,7 @@ public class AuthManager {
             return false;
         }
         // 非正版玩家需要验证
-        return !isAuthenticated(player.getUniqueId());
+        return !authenticatedPlayers.contains(player.getUniqueId());
     }
 
     public void handlePlayerJoin(Player player) {
