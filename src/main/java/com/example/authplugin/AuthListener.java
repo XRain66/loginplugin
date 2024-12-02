@@ -5,7 +5,6 @@ import com.velocitypowered.api.event.command.CommandExecuteEvent;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.event.player.ServerPreConnectEvent;
-import com.velocitypowered.api.event.player.PlayerMoveEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import net.kyori.adventure.text.Component;
@@ -56,15 +55,6 @@ public class AuthListener {
         if (!plugin.getAuthManager().isAuthenticated(player) && !command.startsWith("login")) {
             event.setResult(CommandExecuteEvent.CommandResult.denied());
             player.sendMessage(Component.text("§c请先登录后再使用命令！"));
-        }
-    }
-
-    @Subscribe
-    public void onPlayerMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-        if (!plugin.getAuthManager().isAuthenticated(player)) {
-            // 踢出玩家并显示消息
-            player.disconnect(Component.text("§c请先登录后再进入服务器！\n§e使用 /login <密码> 登录"));
         }
     }
 
