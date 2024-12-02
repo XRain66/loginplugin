@@ -18,25 +18,24 @@ import java.util.Optional;
 public class AuthPlugin {
     private final ProxyServer server;
     private final Logger logger;
-    private final AuthManager authManager;
-    private final RegisteredServer loginServer;
+    private AuthManager authManager;
+    private RegisteredServer loginServer;
 
     @Inject
     public AuthPlugin(ProxyServer server, Logger logger) {
         this.server = server;
         this.logger = logger;
+    }
+
+    @Subscribe
+    public void onProxyInitialization(ProxyInitializeEvent event) {
         this.authManager = new AuthManager(this);
         
         Optional<RegisteredServer> loginServerOptional = server.getServer("login");
         this.loginServer = loginServerOptional.orElseThrow(() -> 
             new RuntimeException("找不到登录服务器！请确保配置了名为 'login' 的服务器！"));
-    }
-
-    @Subscribe
-    public void onProxyInitialization(ProxyInitializeEvent event) {
-        // 注册事件监听器
+        
         server.getEventManager().register(this, new AuthListener(this));
-        // 注册命令
         server.getCommandManager().register("login", new LoginCommand(authManager));
         server.getCommandManager().register("register", new RegisterCommand(authManager));
         server.getCommandManager().register("authreload", new ReloadCommand(this));
