@@ -32,13 +32,18 @@ public class AuthPlugin {
         this.authManager = new AuthManager(this);
         
         Optional<RegisteredServer> loginServerOptional = server.getServer("login");
-        this.loginServer = loginServerOptional.orElseThrow(() -> 
-            new RuntimeException("找不到登录服务器！请确保配置了名为 'login' 的服务器！"));
+        if (!loginServerOptional.isPresent()) {
+            logger.error("找不到登录服务器！请确保配置了名为 'login' 的服务器！");
+            return;
+        }
+        this.loginServer = loginServerOptional.get();
         
         server.getEventManager().register(this, new AuthListener(this));
         server.getCommandManager().register("login", new LoginCommand(authManager));
         server.getCommandManager().register("register", new RegisterCommand(authManager));
         server.getCommandManager().register("authreload", new ReloadCommand(this));
+        
+        logger.info("Auth Plugin 已加载！");
     }
 
     public AuthManager getAuthManager() {
